@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginUserRequest;
-use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Traits\ApiResponses;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cookie;
+use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\StoreUserRequest;
 
 class AuthController extends Controller
 {
@@ -34,12 +35,14 @@ class AuthController extends Controller
         $user->tokens()->delete();
         // create new token
         $token = $user->createToken('Login_token_'.$user->username)->plainTextToken;
+        // set cokkie
+        $cookie = Cookie('Sanctum_Token', $token, 60 * 24);
 
         //response
         return $this->success([
             'user' => $user,
             'token' => $token,
-        ], 'User Logged in Successfully');
+        ], 'User Logged in Successfully')->withCookie($cookie);
 
     }
 
@@ -60,7 +63,9 @@ class AuthController extends Controller
                 'password' => Hash::make($request['password']),
             ]);
         } catch (\Throwable $th) {
-            throw $th;
+            return $this->error([
+                'error' => $th,
+            ], 'Something went wrong', 401);
         }
 
         // response
@@ -77,8 +82,10 @@ class AuthController extends Controller
     {
         //delete current access token
         Auth::user()->currentAccessToken()->delete();
+        //delete current Sanctum_Token cookie
+        $cookie = Cookie::forget('Sanctum_Token');
         // response
-        return $this->success('', 'User Logged out successfully');
+        return $this->success('', 'User Logged out successfully')->withCookie($cookie);
     }
 
 }
