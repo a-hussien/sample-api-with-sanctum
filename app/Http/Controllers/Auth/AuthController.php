@@ -18,24 +18,23 @@ class AuthController extends Controller
     public function login(LoginUserRequest $request)
     {
         // validate
-        $request->validated($request->only(['username', 'password']));
+        $credentials = $request->validated();
 
-        // check credentials
-        $credentials = $request->only(['username', 'password']);
         $credentials['isActive'] = 1;
 
+        // check credentials
         if(!Auth::attempt($credentials))
         {
             return $this->error('', 'Wrong authentication data', 401);
         }
 
         // fetch user instance
-        $user = User::whereUsername($request->username)->first();
+        $user = User::whereUsername($credentials['username'])->first();
         // delete previous tokens
         $user->tokens()->delete();
         // create new token
         $token = $user->createToken('Login_token_'.$user->username)->plainTextToken;
-        // set cokkie
+        // set cookie
         $cookie = Cookie('Sanctum_Token', $token, 60 * 24);
 
         //response
@@ -49,18 +48,16 @@ class AuthController extends Controller
     public function register(StoreUserRequest $request)
     {
         // validate
-        $request->validated($request->only([
-            'first_name', 'last_name', 'username', 'email', 'password'
-        ]));
+        $validated = $request->validated();
 
         // create user
         try {
             $user = User::create([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'username' => $request->username,
-                'email' => $request->email,
-                'password' => Hash::make($request['password']),
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
             ]);
         } catch (\Throwable $th) {
             return $this->error([
@@ -80,12 +77,15 @@ class AuthController extends Controller
 
     public function logout()
     {
-        //delete current access token
-        Auth::user()->currentAccessToken()->delete();
-        //delete current Sanctum_Token cookie
-        $cookie = Cookie::forget('Sanctum_Token');
-        // response
-        return $this->success('', 'User Logged out successfully')->withCookie($cookie);
+        if(Auth::check())
+        {
+            //delete current access token
+            Auth::user()->currentAccessToken()->delete();
+            //delete current Sanctum_Token cookie
+            $cookie = Cookie::forget('Sanctum_Token');
+            // response
+            return $this->success('', 'User Logged out successfully')->withCookie($cookie);
+        }
     }
 
 }
