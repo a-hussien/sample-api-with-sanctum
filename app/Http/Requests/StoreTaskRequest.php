@@ -13,7 +13,7 @@ class StoreTaskRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,9 @@ class StoreTaskRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'title' => ['required', 'string', 'max:125', 'unique:tasks,title'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'priority' => ['required'],
         ];
     }
 }

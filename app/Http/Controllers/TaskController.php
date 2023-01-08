@@ -6,10 +6,12 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TasksResource;
+use App\Traits\ApiResponses;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
+    use ApiResponses;
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +26,6 @@ class TaskController extends Controller
         return $tasks;
     }
 
-
     /**
      * Store a newly created resource in storage.
      *
@@ -33,7 +34,30 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        //
+        // validate
+        $request->validated($request->safe()->all());
+        // create task
+        try {
+            $task = Task::create([
+                'user_id' => Auth::user()->id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'priority' => $request->priority
+            ]);
+        } catch (\Throwable $th) {
+           return $this->error([
+            'error' => $th,
+           ], 'Can\'t create task', 401);
+        }
+
+        // response
+        if($task)
+        {
+            return $this->success([
+                'task' => new TasksResource($task)
+            ], 'Task created Successfully');
+        }
+
     }
 
     /**
@@ -44,7 +68,15 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        //
+        // check authorization for incoming user request
+        return
+        $this->isNotAuthorized($task)
+        ?
+        $this->isNotAuthorized($task)
+        :
+        $this->success([
+            'task' => new TasksResource($task)
+        ]);
     }
 
     /**
@@ -56,7 +88,21 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        if($this->isNotAuthorized($task))
+        {
+            return $this->isNotAuthorized($task);
+        }
+        else
+        {
+            $request->validated($request->safe()->all());
+
+            $task->update($request->safe()->all());
+
+            return $this->success([
+                'task' => new TasksResource($task)
+            ]);
+        }
+
     }
 
     /**
@@ -67,6 +113,26 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        if($this->isNotAuthorized($task))
+        {
+            return $this->isNotAuthorized($task);
+        }
+        else
+        {
+            try {
+                $task->delete();
+                return $this->success(null,'Task Deleted Successfully', 204);
+            } catch (\Throwable $th) {
+                return $this->error('', 'Resource Not Found '. $th, 404);
+            }
+        }
+    }
+
+    private function isNotAuthorized($task)
+    {
+        if(Auth::user()->id !== $task->user_id)
+        {
+            return $this->error('', 'Unauthorized request', 403);
+        }
     }
 }
