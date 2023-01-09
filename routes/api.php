@@ -19,7 +19,7 @@ Route::group(['prefix' => 'v1'], function () {
     });
     // task routes
     Route::group(['middleware' => ['auth:sanctum']], function () {
-        Route::resource('/tasks', TaskController::class);
+        Route::apiResource('/tasks', TaskController::class);
     });
 });
 

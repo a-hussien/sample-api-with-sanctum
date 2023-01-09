@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -39,7 +40,7 @@ class AuthController extends Controller
 
         //response
         return $this->success([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ], 'User Logged in Successfully')->withCookie($cookie);
 
@@ -69,7 +70,7 @@ class AuthController extends Controller
         if($user)
         {
             return $this->success([
-                'user' => $user,
+                'user' => new UserResource($user),
             ], 'User Created Successfully');
         }
 
