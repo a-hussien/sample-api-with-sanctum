@@ -17,15 +17,14 @@ class TasksResource extends JsonResource
         return [
             'id' => (string)$this->id,
             'attributes' => [
-                'title' => $this->title,
+                'title' => ucwords($this->title),
                 'description' => $this->description,
                 'priority' => $this->priority,
-                'created_at' => $this->created_at,
-                'updated_at' => $this->updated_at,
+                'created_at' => $this->created_at->format('d-m-Y'),
+                'updated_at' => $this->updated_at->format('d-m-Y'),
             ],
             'relationships' => [
-                'id' => (string)$this->user->id,
-                'full name' => $this->user->full_name,
+                'user' => new UserResource($this->user),
             ]
         ];
     }

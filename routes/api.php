@@ -11,10 +11,10 @@ Route::group(['prefix' => 'v1'], function () {
     });
     // auth Routes
     Route::group(['prefix' => 'auth'], function () {
-        Route::post('/login', [AuthController::class, 'login'])->name('login');
-        Route::post('/register', [AuthController::class, 'register'])->name('register');
+        Route::post('/login', [AuthController::class, 'login']);
         Route::group(['middleware' => ['auth:sanctum']], function () {
-            Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+            Route::post('/register', [AuthController::class, 'register']);
+            Route::post('/logout', [AuthController::class, 'logout']);
         });
     });
     // task routes
