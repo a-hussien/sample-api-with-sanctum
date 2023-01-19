@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TaskPriority;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -25,5 +26,10 @@ class Task extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // casting priority enum
+    protected $casts = [
+        'priority' => TaskPriority::class,
+    ];
 
 }

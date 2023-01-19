@@ -19,7 +19,7 @@ class TasksResource extends JsonResource
             'attributes' => [
                 'title' => ucwords($this->title),
                 'description' => $this->description,
-                'priority' => $this->priority,
+                'priority' => $this->priority->value,
                 'created_at' => $this->created_at->format('d-m-Y'),
                 'updated_at' => $this->updated_at->format('d-m-Y'),
             ],

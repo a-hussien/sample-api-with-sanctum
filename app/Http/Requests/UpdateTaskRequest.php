@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TaskPriority;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateTaskRequest extends FormRequest
 {
@@ -26,7 +28,7 @@ class UpdateTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:125', 'unique:tasks,title,except,id'],
             'description' => ['nullable', 'string', 'max:255'],
-            'priority' => ['sometimes','required'],
+            'priority' => ['sometimes','required', new Enum(TaskPriority::class)],
         ];
     }
 }
